@@ -26,21 +26,39 @@ class DigiKey_Scrapper:
 		#getting all the part numbers etc from CSV file
 		self.data = pd.read_csv(csv_file)
 		self.number_rows = len(self.data)
+		self.current_row = 0
+		self.digikey_part_number_column = digikey_part_number_column
 		#opening firefox and browsing to digikey website (also clicking the cookies button)
 		self.firefox_window = driver.Firefox()
 		self.firefox_window.maximize_window()
-		self.firefox_window.get(DIGIKEY_LINK)
+		self.firefox_window.get(self.DIGIKEY_LINK)
 		self.firefox_window.find_element_by_class_name('button-desktop').click() #clicking the cookies accept button
-
 	
-	def get_next(self):
-
+	def browse_to_next_part(self):
+		#meaning this is the first run
+		if(self.current_row == 0):
+			searchbox = self.firefox_window.find_elements_by_class_name('search-textbox')[1]
+		#not the first run
+		else:
+			searchbox = self.firefox_window.find_elements_by_class_name('search-textbox')[0]
+		time.sleep(0.1)
+		searchbox.click()
+		time.sleep(0.1)
+		#entering the part number and pressing enter
+		searchbox.send_keys(self.data[self.digikey_part_number_column][self.current_row])
+		searchbox.send_keys(Keys.RETURN)
+		#incrementing current_row
+		self.current_row += 1
+		return (self.current_row - 1) #returning current
+			
 
 
 def main():
-	dks = DigiKey_Scrapper()
-	code.interact(local=locals())
-
+	dks = DigiKey_Scrapper(sys.argv[1])
+	while(dks.current_row < dks.number_rows):
+		dks.browse_to_next_part()
+		time.sleep(3)
+		
 
 
 
