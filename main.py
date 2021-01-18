@@ -15,10 +15,10 @@ from scraper_modules import *
 
 #format
 if(len(sys.argv) < 2):
-	print('main.py [BOM CSV file] [Row name with part numbers]')
+	print('main.py [BOM CSV file]')
 	exit(-1)
 
-class DigiKey_Scrapper:
+class DigiKey_Scrapper_Driver:
 	#constants
 	DIGIKEY_LINK = "https://www.digikey.com/"
 
@@ -33,6 +33,12 @@ class DigiKey_Scrapper:
 		self.firefox_window.maximize_window()
 		self.firefox_window.get(self.DIGIKEY_LINK)
 		self.firefox_window.find_element_by_class_name('button-desktop').click() #clicking the cookies accept button
+
+	def _wait_until_load(self):
+		loaded = ''
+		while(loaded != 'complete'):
+			loaded = self.firefox_window.execute_script('return document.readyState')
+			time.sleep(0.5)
 	
 	def browse_to_next_part(self):
 		#meaning this is the first run
@@ -49,121 +55,25 @@ class DigiKey_Scrapper:
 		searchbox.send_keys(Keys.RETURN)
 		#incrementing current_row
 		self.current_row += 1
+		#ANNOYING DELAY!!!! PLEASE ADJUST
+		time.sleep(2)
+		self._wait_until_load()
 		return (self.current_row - 1) #returning current
-			
+
+	def get_driver(self):
+		return self.firefox_window
+
 
 
 def main():
-	dks = DigiKey_Scrapper(sys.argv[1])
+	dks = DigiKey_Scrapper_Driver(sys.argv[1])
+	# dks.get_driver().implicitly_wait(3)
+	scrapper_object = DigiKey_Scrapper(True)
 	while(dks.current_row < dks.number_rows):
 		dks.browse_to_next_part()
-		time.sleep(3)
-		
+		scrapper_object.set_driver(dks.get_driver())
+		scrapper_object.scrape_for_page()
 
-
-
-# searchbox = firefox_window.find_elements_by_class_name('product-search-text')
-# searchbox[1].click()
-# try:
-# 	searchbox[1].send_keys(data_sanitized[DK_PART_ROW][0])
-# except:
-# 	pass
-# searchbox[1].send_keys(Keys.RETURN)
-# file_name = '0_' + data_sanitized[VALUE_ROW][0].replace('-', '').replace('.', '') + '_' + data_sanitized[DK_PART_ROW][0].replace('-', '').replace('.', '') + '.png'
-# time.sleep(2)
-# firefox_window.save_screenshot(file_name)
-# price_table = []
-# time.sleep(2)
-# # if(len(price_table) <= 0):
-# dk_part_row.append(data[DK_PART_ROW][0])
-# value_row.append(data[VALUE_ROW][0])
-# while(True):
-# 	try:
-# 		price_table = firefox_window.find_elements_by_class_name('MuiGrid-grid-md-4')[0].find_elements_by_class_name('MuiTable-root')[0].find_elements_by_tag_name('tr')
-# 		single_price = price_table[2].text
-# 		multi_price = price_table[len(price_table) - 1].text
-# 		break
-# 	except:
-# 		time.sleep(1)
-# 		continue
-# print('Single Price :' + str(single_price))
-# print('Multi Price :' + str(multi_price))
-# price_single_row.append(single_price)
-# price_multi_row.append(multi_price)
-# searchbox = firefox_window.find_elements_by_class_name('product-search-text')
-# try:
-# 	searchbox[0].click()
-# except:
-# 	pass
-
-# for i in range(1, len(data_sanitized)):
-
-# 	try:
-# 		data_sanitized[VALUE_ROW][i]
-# 	except:
-# 		continue
-# 	time.sleep(2)
-# 	searchbox = firefox_window.find_elements_by_class_name('product-search-text')
-# 	searchbox[0].click()
-# 	try:
-# 		searchbox[0].send_keys(data_sanitized[DK_PART_ROW][i])
-# 	except:
-# 		pass
-# 	try:
-# 		searchbox[0].send_keys(Keys.RETURN)
-# 	except:
-# 		pass
-
-# 	dk_part_row.append(data[DK_PART_ROW][i])
-# 	value_row.append(data[VALUE_ROW][i])
-
-# 	#santizing file name
-# 	file_name = str(i) + '_' + data_sanitized[VALUE_ROW][i].replace('-', '').replace('.', '') + '_' + data_sanitized[DK_PART_ROW][i].replace('-', '').replace('.', '') + '.png'
-# 	time.sleep(4)
-# 	while(True):
-# 		try:
-# 			price_table = firefox_window.find_elements_by_class_name('MuiGrid-grid-md-4')[0].find_elements_by_class_name('MuiTable-root')[0].find_elements_by_tag_name('tr')
-# 			single_price = price_table[2].text
-# 			multi_price = price_table[len(price_table) - 1].text
-# 			print('Single Price :' + str(single_price))
-# 			print('Multi Price :' + str(multi_price))
-# 			price_single_row.append(single_price)
-# 			price_multi_row.append(multi_price)
-# 			break
-# 		except:
-# 			time.sleep(1)
-# 			continue
-# 	firefox_window.save_screenshot(file_name)
-# 	searchbox = firefox_window.find_elements_by_class_name('product-search-text')
-# 	searchbox[0].click()
-
-# # price_single_row_final = []
-# # price_multi_row_final = []
-
-# # print('Now entering interactive console')
-# # code.interact(local=locals())
-
-# # for i in range(0, len(price_single_row)):
-# # 	tmp = price_single_row[i]
-# # 	tmp.replace('$', '').replace(',','').split()
-# # 	print(tmp)
-# # 	tmp = float(tmp[1]) / float(tmp[0])
-# # 	price_single_row_final.append(tmp)
-
-# # 	tmp = price_multi_row[i]
-# # 	tmp.replace('$', '').replace(',','').split()
-# # 	print(tmp)
-# # 	tmp = float(tmp[1]) / float(tmp[0])
-# # 	price_multi_row_final.append(tmp)
-
-# df = pd.DataFrame({
-# DK_PART_ROW : dk_part_row,
-# VALUE_ROW : value_row,
-# "PriceSingle" : price_single_row,
-# "PriceMulti" : price_multi_row
-# })
-
-# df.to_csv('output.csv')
 
 if(__name__ == "__main__"):
 	main()
