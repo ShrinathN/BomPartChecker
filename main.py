@@ -2,16 +2,18 @@
 
 import selenium.webdriver as driver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 import pandas as pd
 import os
 import sys
 import code
 import time
+import threading
 
 from scraper_modules import *
 
 #variables
-
+TIME_DELAY_INTERNET_SPEED = 3 #this is the scraping delay in seconds, adjust according to your internet speed
 
 #format
 if(len(sys.argv) < 2):
@@ -41,6 +43,7 @@ class DigiKey_Scrapper_Driver:
 		while(loaded != 'complete'):
 			loaded = self.firefox_window.execute_script('return document.readyState')
 			time.sleep(0.5)
+		time.sleep(0.5)
 	
 	def browse_to_next_part(self):
 		#meaning this is the first run
@@ -59,7 +62,7 @@ class DigiKey_Scrapper_Driver:
 		#incrementing current_row
 		self.current_row += 1
 		#ANNOYING DELAY!!!! PLEASE ADJUST
-		time.sleep(5)
+		# time.sleep(5)
 		self._wait_until_load()
 		return (self.current_row - 1) #returning current
 
@@ -72,16 +75,17 @@ class DigiKey_Scrapper_Driver:
 
 def main():
 	dks = DigiKey_Scrapper_Driver(sys.argv[1])
-	dks.get_driver().implicitly_wait(5)
+	# dks.get_driver().implicitly_wait(5)
 
 	scrapper_object = DigiKey_Scrapper(True, True, True)
 	scrapper_object.set_data(dks.get_data())
 
+	# threading.Thread(target=show_stat, args=(dks.get_driver(),)).start()
+
 	while(dks.current_row < dks.number_rows):
 		dks.browse_to_next_part()
-		# time.sleep(5)
 		scrapper_object.set_driver(dks.get_driver())
-		# time.sleep(5)
+		time.sleep(TIME_DELAY_INTERNET_SPEED)
 		scrapper_object.scrape_for_page()
 
 	scrapper_object.save_as_csv('output.csv')
