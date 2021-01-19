@@ -28,6 +28,8 @@ class DigiKey_Scrapper_Driver:
 		self.number_rows = len(self.data)
 		self.current_row = 0
 		self.digikey_part_number_column = digikey_part_number_column
+
+		self.first_run = True
 		#opening firefox and browsing to digikey website (also clicking the cookies button)
 		self.firefox_window = driver.Firefox()
 		self.firefox_window.maximize_window()
@@ -42,8 +44,9 @@ class DigiKey_Scrapper_Driver:
 	
 	def browse_to_next_part(self):
 		#meaning this is the first run
-		if(self.current_row == 0):
+		if(self.first_run):
 			searchbox = self.firefox_window.find_elements_by_class_name('search-textbox')[1]
+			self.first_run = False
 		#not the first run
 		else:
 			searchbox = self.firefox_window.find_elements_by_class_name('search-textbox')[0]
@@ -56,23 +59,33 @@ class DigiKey_Scrapper_Driver:
 		#incrementing current_row
 		self.current_row += 1
 		#ANNOYING DELAY!!!! PLEASE ADJUST
-		time.sleep(2)
+		time.sleep(5)
 		self._wait_until_load()
 		return (self.current_row - 1) #returning current
 
 	def get_driver(self):
 		return self.firefox_window
 
+	def get_data(self):
+		return self.data
 
 
 def main():
 	dks = DigiKey_Scrapper_Driver(sys.argv[1])
-	# dks.get_driver().implicitly_wait(3)
-	scrapper_object = DigiKey_Scrapper(True)
+	dks.get_driver().implicitly_wait(5)
+
+	scrapper_object = DigiKey_Scrapper(True, True, True)
+	scrapper_object.set_data(dks.get_data())
+
 	while(dks.current_row < dks.number_rows):
 		dks.browse_to_next_part()
+		# time.sleep(5)
 		scrapper_object.set_driver(dks.get_driver())
+		# time.sleep(5)
 		scrapper_object.scrape_for_page()
+
+	scrapper_object.save_as_csv('output.csv')
+
 
 
 if(__name__ == "__main__"):
