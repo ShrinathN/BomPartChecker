@@ -47,7 +47,7 @@ class DigiKey_Scrapper_Driver:
 		time.sleep(0.5)
 
 	def get_current_part_value(self):
-		return self.data['Value'][self.current_row]
+		return self.data['Value'][self.current_row - 1]
 	
 	def browse_to_next_part(self):
 		#meaning this is the first run
@@ -94,9 +94,11 @@ def main():
 	while(dks.current_row < dks.number_rows):
 		dks.browse_to_next_part()
 		scrapper_object.set_driver(dks.get_driver())
-		dks.save_screenshot('p' + str(dks.current_row) + '_' + dks.get_current_part_value() + '.png')
 		time.sleep(TIME_DELAY_INTERNET_SPEED)
 		scrapper_object.scrape_for_page()
+		if(os.listdir().count('images') == 0):
+			os.mkdir('images')
+		dks.save_screenshot('images/' + 'p' + str(dks.current_row - 1) + '_' + dks.get_current_part_value() + '.png')
 
 	scrapper_object.save_as_csv('output.csv')
 
