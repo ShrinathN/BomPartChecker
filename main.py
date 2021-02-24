@@ -24,11 +24,12 @@ class DigiKey_Scrapper_Driver:
 	#constants
 	DIGIKEY_LINK = "https://www.digikey.com/"
 
-	def __init__(self, csv_file, digikey_part_number_column='Digi-Key_PN'):
+	def __init__(self, csv_file, digikey_part_number_column='Digi-Key_PN', value_column='Value'):
 		#getting all the part numbers etc from CSV file
 		self.data = pd.read_csv(csv_file)
 		self.number_rows = len(self.data)
 		self.current_row = 0
+		self.value_column = value_column
 		self.digikey_part_number_column = digikey_part_number_column
 
 		self.first_run = True
@@ -44,6 +45,9 @@ class DigiKey_Scrapper_Driver:
 			loaded = self.firefox_window.execute_script('return document.readyState')
 			time.sleep(0.5)
 		time.sleep(0.5)
+
+	def get_current_part_value(self):
+		return self.data['Value'][self.current_row]
 	
 	def browse_to_next_part(self):
 		#meaning this is the first run
@@ -72,6 +76,11 @@ class DigiKey_Scrapper_Driver:
 	def get_data(self):
 		return self.data
 
+	def save_screenshot(self, filename):
+		f = open(filename, 'wb')
+		f.write(self.firefox_window.get_screenshot_as_png())
+		f.close()
+
 
 def main():
 	dks = DigiKey_Scrapper_Driver(sys.argv[1])
@@ -85,6 +94,7 @@ def main():
 	while(dks.current_row < dks.number_rows):
 		dks.browse_to_next_part()
 		scrapper_object.set_driver(dks.get_driver())
+		dks.save_screenshot('p' + str(dks.current_row) + '_' + dks.get_current_part_value() + '.png')
 		time.sleep(TIME_DELAY_INTERNET_SPEED)
 		scrapper_object.scrape_for_page()
 
