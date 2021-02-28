@@ -86,7 +86,7 @@ def main():
 	dks = DigiKey_Scrapper_Driver(sys.argv[1])
 	# dks.get_driver().implicitly_wait(5)
 
-	scrapper_object = DigiKey_Scrapper(True, True, True)
+	scrapper_object = DigiKey_Scrapper(True, True, True, True, True)
 	scrapper_object.set_data(dks.get_data())
 
 	# threading.Thread(target=show_stat, args=(dks.get_driver(),)).start()

@@ -14,10 +14,14 @@ class DigiKey_Scrapper:
 	scrap_manufacturer_part_number=False,
 	scrap_description=False,
 	scrap_manufacturer=False,
+	scrap_datasheet=False,
+	scrap_digikey_page=False
 	):
 		self._scrap_manufacturer_part_number = scrap_manufacturer_part_number
 		self._scrap_description = scrap_description,
 		self._scrap_manufacturer = scrap_manufacturer
+		self._scrap_datasheet = scrap_datasheet
+		self._scrap_digikey_page = scrap_digikey_page
 
 		self._number_fields_to_scrap = 0
 		#initializing arrays for various modules
@@ -29,7 +33,12 @@ class DigiKey_Scrapper:
 			self._number_fields_to_scrap += 1
 		if(self._scrap_manufacturer):
 			self.scrap_manufacturer_array = []
-			self._number_fields_to_scrap += 1		
+			self._number_fields_to_scrap += 1
+		if(self._scrap_datasheet):
+			self.scrap_datasheet_array = []
+			# self._number_fields_to_scrap += 1	 # not a normal table field
+		if(self._scrap_digikey_page):
+			self.scrap_digikey_page_array = []
 
 
 	#ADD NEW SCRAPPER MODULES IN THIS FUNCTION
@@ -81,6 +90,16 @@ class DigiKey_Scrapper:
 			#will exit when all enabled module info pieces are found
 			if(self._number_fields_to_scrap == fields_scrapped):
 				break
+		
+		#datasheet
+		if(self._scrap_datasheet):
+			self.scrap_datasheet_array.append(self.driver.find_elements_by_class_name('print-hide')[1].get_attribute('href'))
+			print('Scrapped Part Datasheet!')
+			print(self.scrap_datasheet_array[-1])
+		
+		#digikey details page
+		if(self._scrap_digikey_page):
+			self.scrap_digikey_page_array.append(self.driver.current_url)
 
 	def set_driver(self, driver):
 		self.driver = driver
@@ -98,6 +117,12 @@ class DigiKey_Scrapper:
 
 			if(self._scrap_manufacturer):
 				self.data['manufacturer'] = self.scrap_manufacturer_array
+			
+			if(self._scrap_datasheet):
+				self.data['Data Sheets'] = self.scrap_datasheet_array
+			
+			if(self._scrap_digikey_page):
+				self.data['DigiKey Details Page'] = self.scrap_digikey_page_array
 
 			self.data.to_csv(file_name)
 		except:
